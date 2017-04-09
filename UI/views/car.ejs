@@ -118,6 +118,9 @@ input {
 		var phonegap = false;
 		var heartrate= 80;
 
+		var carid= "<%= carid %>";
+		var driver= "<%= driver %>";
+		
 		function saveImg() {
 			var dataURL = canvas.toDataURL('image/png');
 			window.open(dataURL);
@@ -161,11 +164,34 @@ input {
 		}
 
 		var thing;
+		var latitude= "0";
+		var longitude= "0";
+		var altitude= "0";
+		var heading= "0";
+		var gpsspeed= "0";
+		
+
 
 		function rotateThing() {
 			thing.rotate(6);
 			setTimeout(rotateThing, 300);
 		}
+
+		function onGeoSuccess(position) {
+                        latitude = position.coords.latitude;
+                        longitude = position.coords.longitude;
+						altitude = position.coords.altitude;
+						heading = position.coords.heading;
+						gpsspeed = position.coords.speed;
+              		console.log("Geo success...");
+        
+	  };
+
+        function onGeoError(error) {
+                		console.log("Geo error...");
+        };
+	    
+	
 
 		startMe = function() {
 			w = window.innerWidth;
@@ -183,6 +209,7 @@ input {
 			fileref.setAttribute("type", "text/javascript")
 			fileref.setAttribute("src", "cc.js");
 			document.getElementsByTagName("head")[0].appendChild(fileref)
+	
 		}
 		var server= ""
 		var servertotry= server;

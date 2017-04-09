@@ -26,6 +26,7 @@
 	function updateLocations() {
 		if (req.readyState == 4 && req.status == 200) {
 			alllocs = JSON.parse(req.responseText);
+			document.getElementById("maxoffset").innerHTML="Kafka Offset (max= "+alllocs.maxoffset+")";
 			iimap = new Array(alllocs.locations.length);
 			for (var l = 0; l < alllocs.locations.length; l++) {
 				iimap[l] = {
@@ -90,7 +91,37 @@
 		}
 	}
 
-	
+	function setOffset(os) {
+		if (window.XMLHttpRequest) {
+			try {
+				req = new XMLHttpRequest();
+			} catch (e) {
+				req = false;
+			}
+			// branch for IE/Windows ActiveX version
+		} else {
+			if (window.ActiveXObject) {
+				try {
+					req = new ActiveXObject("Msxml2.XMLHTTP");
+				} catch (e) {
+					try {
+						req = new ActiveXObject("Microsoft.XMLHTTP");
+					} catch (e) {
+						req = false;
+					}
+				}
+			}
+		}
+		if (req) {
+			console.log(os);
+			req.onreadystatechange = function() {};
+			req.open("GET", "setoffset?offset="+os, true);
+			req.send("");
+		} else {
+			alert("req== false");
+		}
+	}
+
 	function initialize() {
 		var id = document.getElementById("all");
 		w = window.innerWidth;
@@ -100,9 +131,9 @@
 		sX = w / 1024;
 		sY = h / 768;
 	
-/*
+
 		var bgimg = new Image();
-		bgimg.src = "../images/bg.jpg";
+		bgimg.src = "images/bg.jpg";
 		bgimg.setAttribute("id", "bg");
 		id.appendChild(bgimg);
 
@@ -110,13 +141,24 @@
 		bgimg.setAttribute("style",
 				"position:absolute; top:0px; left:0px; width: "
 						+ window.innerWidth + "px; height: " + bgh + "px;");
-*/
+
 		id = document.getElementById("map_canvas");
 		id.setAttribute("style", "position:absolute; top:"
 				+ ((128 * window.innerWidth / 1024) + 32 * sY) + "px; left:"
 				+ (512 * (1 - 0.7) * sX) + "px; width: " + (1024 * sX * 0.7)
 				+ "px; height: " + (768 * sY * 0.6) + "px;");
 
+		id = document.getElementById("q");
+		id
+				.setAttribute(
+						"style",
+						"position:absolute; top:"
+								+ (32
+										* sY
+										+ ((128 * window.innerWidth / 1024) + 32 * sY) + (768 * sY * 0.6))
+								+ "px; left:" + (512 * (1 - 0.7) * sX)
+								+ "px; width: " + (1024 * sX * 0.7)
+								+ "px; height: " + (768 * sY * 0.6) + "px;");
 
 		var z = Math.floor(1.5 * sX);
 		mapOptions = {
@@ -147,6 +189,10 @@
 	
 	hitDataUrl();
 
+	function execQuery(q) {
+		var q= document.getElementById("offset").value;
+		setOffset(q);
+	}
 </script>
 </head>
 <body onload="initialize()">
@@ -158,6 +204,14 @@
 	<h2  style="top: 80px; font-size: 24px; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif"><%= name %></h2>
 	</center>
 	<div id="map_canvas"></div>
+	<div id="q" >
+		<h3 id="maxoffset" style="font-size: 24px; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif">Kafka Offset:</h3> 
+		<input id="offset" type="text" style="width: 20%; font-size: 24px; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif" value="0"></input>
+				
+					<button onclick="execQuery()" style="width: 20%; font-size: 24px; font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif">Set</button>  <p> 
+				
+		
+	</div>
 	<script>
 		setTimeout(hitDataUrl, 2000);
 	</script>

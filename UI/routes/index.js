@@ -40,6 +40,7 @@ function listenOnTopic() {
 });
 };
 
+
 producer.on('ready', function () {
   console.log("Producer ready.");
       producer.createTopics([modeltopic], false, function (err, data) {
@@ -48,8 +49,19 @@ producer.on('ready', function () {
       });
 });
 
+router.get('/', function(req, res, next) {
+  res.render('index', { title: "Connected Car Platform", name:"Connected Car Platform" });
+});
 
-router.get('/sessions/running', function(req, res, next) {
+
+router.get('/car', function(req, res, next) {
+  res.render('car', { title: "Connected Car Platform", carid:req.query.carid, driver:req.query.driver });
+});
+
+
+router.get('/health', function(req, res, next) {
+  res.statusCode= 200;
+  res.end();
 });
 
 router.post('/model', function(req, res, next) {
@@ -64,6 +76,7 @@ router.post('/model', function(req, res, next) {
     }); 
   res.end();
 });
+
 
 
 
@@ -89,6 +102,11 @@ transporter.sendMail(mailOptions, function(error, info){
     console.log('Message sent: ' + info.response);
 });
 };
+
+router.get('/', function(req, res, next) {
+
+
+});
 
 router.post('/mail', function(req, res, next) {
  let msg= req.body;

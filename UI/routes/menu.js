@@ -17,7 +17,7 @@ for(var i= 0; i< appdef.fields.length; i++) {
   types[i] = appdef.fields[i].type;
 }
 
-var messages= new Object();
+var messages= new Array();
 var nmessages= 0;
 var messageoffset= -1;
 let listener= process.env.LISTENER;
@@ -44,17 +44,19 @@ var kafka_consumer = new Consumer(
   );
 
 kafka_consumer.on('message', function (message) {
-  let obj= JSON.parse(message.value);
-  let user= obj.user;
-  messages[user]= obj;
-//  console.log("Kafka, received message: ", JSON.stringify(messages));
+  if(nmessages>= 1024) {
+    nmessages= 0;
+  }
+  messages[nmessages]= message;
+  nmessages++;
+  console.log("Kafka, received message: ", nmessages+" "+message);
 });
 
 //"http://dcosappstudio-"+appdef.path+"workerlistener.marathon.l4lb.thisdcos.directory:0/data";
 
   
 router.get('/zeppelin.html', function(req, res, next) {
-let obj= require(process.env.MESOS_SANDBOX+"/zeppelin-notebook.json");
+let obj= require("/"+process.env.APPDIR+"/zeppelin-notebook.json");
 let txt= JSON.stringify(obj).replace(/TOPIC/g, appdef.topic);
 txt= txt.replace(/TABLE/g, appdef.table);
 txt= txt.replace(/APPNAME/g, appdef.name);
@@ -81,10 +83,6 @@ txt= txt.replace(/REPLACE2/g, l2);
   res.end();
 });
 
-router.get('/', function(req, res, next) {
-  res.render('index', { title: appdef.name, name:"Connected Car Platform" });
-});
-
 
 router.get('/senddata*', function(req, res, next) {
   var url_parts = url.parse(req.url, true);
@@ -103,6 +101,11 @@ router.get('/senddata*', function(req, res, next) {
 
 router.get('/cassandra.html', function(req, res, next) {
   res.render('cassandra', { table: appdef.table, keyspace: appdef.keyspace});
+});
+
+router.get('/realdata', function(req, res, next) {
+  console.log("ID" +req.query.carid);
+  res.render('realdata', { title: "Connected Car Platform", carid:req.query.carid, driver:req.query.driver });
 });
 
 router.get('/map.html', function(req, res, next) {
@@ -186,25 +189,42 @@ router.get('/mapdata', function(req, res, next) {
   data.locations= new Array();
   console.log("Data: "+JSON.stringify(data));
 
+  let i= 0;
+  if(messageoffset== -1) {
+    if(nmessages> 128)
+      i= nmessages-128;
+  }
+  console.log("nmessages: "+nmessages+" offset: "+messageoffset+" i: "+i);
   let j= 0;
-   let now= new Date().getTime();
-   
-  for(var key in messages) {
-    let location= new Object();
-    let dt= location.event_timestamp;
-    let ms= new Date(dt).getTime();
-    if(now> ms + 1000*60) {
-      delete messages.key;
-      continue;
+  let maxoffset= 0;
+  for(; i< nmessages; i++) {
+    if(messageoffset> 0) {
+        if(messages[i].offset< messageoffset) {
+          console.log("Omitting message: "+messages[i]);
+          continue;
+        }
     }
-    let latlong=  messages[key].location.split(",");
+    let location= new Object();
+    //console.log(messages[i]);
+
+    let latlong= JSON.parse(messages[i].value).location.split(",");
     location.latitude= latlong[0];
     location.longitude= latlong[1];
-    location.n= 1;
+    location.n= 20;
     data.locations[j++]= location;
+    if(messages[i].offset> maxoffset)
+      maxoffset= messages[i].offset;
   }
-  console.log("MapData: "+JSON.stringify(data));
+  data.maxoffset= maxoffset;
   res.write(JSON.stringify(data));
+  res.end();
+});
+
+router.get('/setoffset', function(req, res, next) {
+  let url_parts = url.parse(req.url, true);
+  let query = url_parts.query;
+  messageoffset= query.offset;
+  console.log("Offset set to: "+messageoffset);
   res.end();
 });
 

@@ -1,0 +1,224 @@
+<html>
+<head>
+<title></title>
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="viewport"
+	content="user-scalable=no, width=device-width,  initial-scale=1, minimum-scale=1,  maximum-scale=1" />
+
+<style>
+* {
+	-webkit-user-drag: none;
+	-webkit-touch-callout: none;
+	/* prevent callout to copy image, etc when tap to hold */
+	-webkit-text-size-adjust: none;
+	/* prevent webkit from resizing text to fit */
+	-webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+	/* make transparent link [ remove highlighting ] selection, adjust last value opacity 0 to 1.0 */
+}
+</style>
+<style>
+canvas {
+	border: 0px solid black;
+}
+</style>
+<style>
+.col2 * {
+	width: 100%;
+}
+
+.input {
+	width: 98%
+}
+
+body {
+	font-size: 100%
+}
+
+body {
+	font-family: Arial;
+}
+
+label {
+	font-size: 100%
+}
+
+label {
+	font-family: Arial;
+}
+
+p {
+	font-size: 100%
+}
+
+p {
+	font-family: Arial;
+}
+
+input {
+	font-size: 100%
+}
+
+input {
+	font-family: Arial;
+}
+</style>
+
+</head>
+<body id="body" bgcolor="#343d4b" onkeydown="handleKey(event)">
+	
+	<div id="all" color="#FFFFFF">
+	
+	</div>
+
+	<script type="text/javascript">
+		var all = document.getElementById("all");
+		var canvaswidth, canvasheight;
+		var canvas = document.getElementById("canvas");
+		var w, h, scale;
+		var carid= "<%= carid %>";
+		var driver= "<%= driver %>";
+		var speed = 0;
+        var heading= 0;
+        var altitude= 0;
+        var batterylevel= 100.0;
+        var powerconsumption= "12";
+        var motortemp="30";
+        var latitude= "0";
+        var longitude="0";
+
+if (window.DeviceOrientationEvent) {
+  // Listen for the deviceorientation event and handle the raw data
+  window.addEventListener('deviceorientation', function(eventData) {
+  
+    if(event.webkitCompassHeading) {
+      // Apple works only with this, alpha doesn't work
+      heading = event.webkitCompassHeading;  
+    }
+    else heading = event.alpha;
+  });
+}
+        setGpsData= function() {
+	navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+	setTimeout(sendGPSData, 1000);
+};
+
+
+sendGPSData= function() {
+		navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+		postData();
+	setTimeout(sendGPSData, 1000);
+	
+};
+setGpsData();
+
+function postData() {
+	req = false;
+	var url = "../data";
+//	if (server != undefined && server != null && server.length > 8)
+//		url = servertotry + "/" + url;
+	if (window.XMLHttpRequest) {
+		try {
+			req = new XMLHttpRequest();
+		} catch (e) {
+			req = false;
+		}
+	} else {
+		if (window.ActiveXObject) {
+			try {
+				req = new ActiveXObject("Msxml2.XMLHTTP");
+			} catch (e) {
+				try {
+					req = new ActiveXObject("Microsoft.XMLHTTP");
+				} catch (e) {
+					req = false;
+				}
+			}
+		}
+	}
+	if (req) {
+	//	req.onreadystatechange = processData;
+		req.open("POST", url, true);
+		let d = new Date();
+		let utc_timestamp= getUTCString(d)
+	
+    if(speed== null)
+        speed= 0;
+    if(heading== null)
+        heading= 0;
+        
+		let json = '{"id":"'+d.getTime()
+		+ '", "location":"'+latitude + "," + longitude+'", "event_timestamp":"' + utc_timestamp
+		+ '", "altitude":"' + altitude
+		+ '", "batterylevel":"' + batterylevel
+		+ '", "carid":"' + carid 
+		+ '", "driver":"' + driver
+		+ '", "heading":"' + heading
+		+ '", "motortemp":"' + motortemp	
+		+ '", "powerconsumption":"' + powerconsumption
+		+ '", "status":"' + "ok"
+		+ '", "speed":"' + speed + '"}';
+        all.innerHTML='<font color="white">'+json+'</font>';
+		req.send(json);
+		console.log(json);
+        changeValues();
+	} else {
+		alert("req== false");
+	}
+
+}
+
+changeValues= function() {
+	if(batterylevel>8)
+		batterylevel-= 0.01;
+	powerconsumption= speed/8.0;
+	motortemp= 30+ speed/10.0;	
+};
+
+
+function getUTCString(d) {
+        let day= d.getUTCDate();
+    	daystring= ""+day;
+			
+  			if(day< 10)
+    				daystring="0"+daystring;
+  			 month= d.getUTCMonth()+1;
+  			 monthstring= ""+month;
+  			if(month< 10)
+    				monthstring="0"+monthstring;
+            		
+		     hour= d.getUTCHours();
+			 hourstring= ""+hour;
+  			if(hour< 10)
+    				hourstring="0"+hourstring;
+            		
+			 minute= d.getUTCMinutes();
+			 minutestring= ""+minute;
+  			if(minute< 10)
+    				minutestring="0"+minutestring;
+            		    
+			let second= d.getUTCMilliseconds()/1000.0;
+			let secondstring= ""+second;
+  			if(second< 10)
+    				secondstring="0"+secondstring
+        return d.getFullYear()+"-"+monthstring+"-"+daystring+" "+hourstring+":"+minutestring+":"+secondstring+"";
+};
+
+
+		function onGeoSuccess(position) {
+                        latitude = position.coords.latitude;
+                        longitude = position.coords.longitude;
+						altitude = position.coords.altitude;
+						heading = position.coords.heading;
+						speed = position.coords.speed;
+              		console.log("Geo success...");
+        
+	  };
+
+        function onGeoError(error) {
+                		console.log("Geo error...");
+        };
+	    
+	
+</script>
+</html>

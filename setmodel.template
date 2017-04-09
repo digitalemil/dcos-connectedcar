@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+export PMML='<?xml version="1.0"?>
 <PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_2 http://www.dmg.org/v4-2/pmml-4-1.xsd">
 <Header copyright="Copyright (c) 2015 emil" description="RPart Decision Tree Model">
 <Extension name="user" value="emil" extender="R/PMML"/>
@@ -25,18 +25,21 @@
 </Output>
 <Node id="1" score="0" recordCount="24" defaultChild="2">
 <True/>
-<ScoreDistribution value="0x80FF0000" recordCount="19" confidence="0.791666666666667"/>
-<ScoreDistribution value="0x8000FF00" recordCount="5" confidence="0.208333333333333"/>
+<ScoreDistribution value="0x80FF0000" recordCount="19" confidence="2171.0"/>
+<ScoreDistribution value="0x8000FF00" recordCount="5" confidence="0.0"/>
 <Node id="2" score="0x80FF0000" recordCount="17">
-<SimplePredicate field="heartrate" operator="greaterOrEqual" value="120"/>
+<SimplePredicate field="heartrate" operator="greaterOrEqual" value="65"/>
 <ScoreDistribution value="0x80FF0000" recordCount="17" confidence="1"/>
 <ScoreDistribution value="0x8000FF00" recordCount="0" confidence="0"/>
 </Node>
 <Node id="3" score="0x8000FF00" recordCount="7">
-<SimplePredicate field="heartrate" operator="lessThan" value="120"/>
-<ScoreDistribution value="0x80FF0000" recordCount="2" confidence="0.285714285714286"/>
-<ScoreDistribution value="0x8000FF00" recordCount="5" confidence="0.714285714285714"/>
+<SimplePredicate field="heartrate" operator="lessThan" value="65"/>
+<ScoreDistribution value="0x80FF0000" recordCount="2" confidence="0.0"/>
+<ScoreDistribution value="0x8000FF00" recordCount="5" confidence="2663.0"/>
 </Node>
 </Node>
 </TreeModel>
-</PMML>
+</PMML>'
+echo $PMML>model.tmp
+curl -X POST -d @model.tmp  http://PUBLIC_SLAVE_ELB_HOSTNAME/model
+rm model.tmp

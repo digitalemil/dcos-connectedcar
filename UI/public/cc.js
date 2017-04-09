@@ -117,11 +117,62 @@ function Strip() {
 
 	this.add(body);
 	this.setupDone();
-}
+};
 
 Strip.prototype = new Thing(2);
 
 var speed = 0;
+var heading= 360;
+var altitude= 339;
+var batterylevel= 100.0;
+var powerconsumption= "12";
+var motortemp="30";
+
+latitude= 45.787636-0.1+Math.random()*0.2;
+longitude= -108.489304-0.1+Math.random()*0.2;
+
+setGpsData= function() {
+	navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+	setTimeout(sendGPSData, 1000);
+};
+
+sendGPSData= function() {
+		navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
+		let d = new Date();
+		let utc_timestamp= getUTCString(d)
+		
+		let json = '{"id":"'+d.getTime()
+		+ '", "location":"'+latitude + "," + longitude+'", "event_timestamp":"' + utc_timestamp
+		+ '", "altitude":"' + altitude
+		+ '", "batterylevel":"' + batterylevel
+		+ '", "carid":"' + carid 
+		+ '", "driver":"' + driver
+		+ '", "heading":"' + heading
+		+ '", "motortemp":"' + motortemp	
+		+ '", "powerconsumption":"' + powerconsumption
+		+ '", "status":"' + "ok"
+		+ '", "speed":"' + speed + '"}';
+	setTimeout(sendGPSData, 1000);
+	
+	console.log(json);
+};
+
+//setGpsData();
+	
+changeValues= function() {
+	heading+= -1.0 + 2*Math.random();
+	if(heading< 0)
+		heading+= 360;
+	if(heading>= 360)
+		heading-= 360;
+	altitude+= -2.0 + 4*Math.random();
+	if(batterylevel>8)
+		batterylevel-= 0.01;
+	powerconsumption= speed/8.0;
+	motortemp= 30+ speed/10.0;	
+	latitude+= 0.05*Math.random();
+	longitude+= -0.002+0.004*Math.random();
+};
 
 setSpeed = function(s) {
 	if (s < 0)
@@ -300,13 +351,21 @@ function postData() {
 		req.open("POST", url, true);
 		let d = new Date();
 		let utc_timestamp= getUTCString(d)
-
-
+	
 		let json = '{"id":"'+d.getTime()
-		+ '", "location":"0,0", "event_timestamp":"' + utc_timestamp
-		+ '", "deviceid":"' + user + '", "user":"' + user
-		+ '", "heartrate":"' + speed + '"}';
+		+ '", "location":"'+latitude + "," + longitude+'", "event_timestamp":"' + utc_timestamp
+		+ '", "altitude":"' + altitude
+		+ '", "batterylevel":"' + batterylevel
+		+ '", "carid":"' + carid 
+		+ '", "driver":"' + driver
+		+ '", "heading":"' + heading
+		+ '", "motortemp":"' + motortemp	
+		+ '", "powerconsumption":"' + powerconsumption
+		+ '", "status":"' + "ok"
+		+ '", "speed":"' + speed + '"}';
 		req.send(json);
+		console.log(json);
+		changeValues();
 	} else {
 		alert("req== false");
 	}
