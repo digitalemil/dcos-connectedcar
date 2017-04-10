@@ -133,54 +133,6 @@ router.get('/cql', function(req, res, next) {
 });
 });
 
-router.get('/sessions', function(req, res, next) {
-
-   let ret = "{\"session\":{\"begincomment\":null,\"dayssince01012012\":0,\"dummy\":null,\"endcomment\":null,\"ended\":null,\"groupid\":{\"id\":1,\"name\":\"Default\"},\"id\":0,\"start\":0},\"users\":[";
-
-  let data= new Array();
- 
-  let i= 0;
-  let first= true;
-  let now= new Date().getTime();
-   
-  for(var key in messages) {
-    
-    try {
-    let dt= messages[key].event_timestamp;
-    dt= dt.replace('T', ' ');
-    dt = new Date(dt);
-    let ms= dt.getTime();
-  //  console.log("ms: "+ms);
-     
-  //   console.log(now+" "+ms);
-    if(now> ms + 1000*60) {
-      console.log("Deleting: "+key);
- //   console.log(now+" "+ms+" "+dt);
-      delete messages.key;
-      continue;
-    }
-    }
-    catch(ex) {
-      console.log(ex);
-   } 
-   
-    let color= messages[key].color;
-    let hr= messages[key].heartrate;
-    let user= messages[key].user;
-    let deviceid= messages[key].deviceid; 
-    if (!first)
-      ret+= ", ";
-    else
-      first = false;
-    ret+= "{\"calories\":\"\",\"color\":\""+color+"\",\"hr\":\""+hr+"\",\"name\":\""+user+"\",\"recovery\":\"\",\"zone\":\""+deviceid+"\"}";
-  }
-  ret= ret+ "]}";
-
-let r= JSON.parse(ret);
-  console.log("users.length: "+ r.users.length);
-  res.write(ret);
-  res.end();
-});
 
 
 router.get('/mapdata', function(req, res, next) {
@@ -215,6 +167,19 @@ router.get('/mapdata', function(req, res, next) {
     if(messages[i].offset> maxoffset)
       maxoffset= messages[i].offset;
   }
+  
+   let location= new Object();
+   location.latitude= 45.787636-0.1+Math.random()*0.2;
+   location.longitude= -108.489304-0.1+Math.random()*0.2;
+   location.n= 1;
+   data.locations[0]= location;
+   location= new Object();
+   location.latitude= 45.787636-0.1+Math.random()*0.2;
+   location.longitude= -108.489304-0.1+Math.random()*0.2;
+   location.n= 1;
+   data.locations[1]= location;
+   
+
   data.maxoffset= maxoffset;
   res.write(JSON.stringify(data));
   res.end();
