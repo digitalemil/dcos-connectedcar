@@ -128,7 +128,7 @@ var batterylevel= 100.0;
 var powerconsumption= "12";
 var motortemp="30";
 
-latitude= 45.787636-0.1+Math.random()*0.2;
+latitude= 45.787636+0.1-Math.random()*0.2;
 longitude= -108.489304-0.1+Math.random()*0.2;
 
 setGpsData= function() {
@@ -170,7 +170,7 @@ changeValues= function() {
 		batterylevel-= 0.01;
 	powerconsumption= speed/8.0;
 	motortemp= 30+ speed/10.0;	
-	latitude+= 0.05*Math.random();
+	latitude-= 0.05*Math.random();
 	longitude+= -0.002+0.004*Math.random();
 };
 
@@ -462,9 +462,9 @@ function processData() {
 	}
 
 	for (var i = 0; i < session.users.length; i++) {
-		if (user != session.users[i].name)
+		if (carid != session.users[i].carid)
 			continue;
-		console.log("Found user: " + session.users[i].color);
+		console.log("Found car: " + session.users[i].color);
 		if (session.users[i].color == "0x80FF0000") {
 			warning.setVisibility(true);
 		} else {

@@ -18,6 +18,7 @@ for(var i= 0; i< appdef.fields.length; i++) {
 }
 
 var messages= new Array();
+var messagespercar= new Object();
 var nmessages= 0;
 var messageoffset= -1;
 let listener= process.env.LISTENER;
@@ -49,7 +50,10 @@ kafka_consumer.on('message', function (message) {
   }
   messages[nmessages]= message;
   nmessages++;
-  console.log("Kafka, received message: ", nmessages+" "+message);
+  let obj= JSON.parse(message.value);
+  let user= obj.carid;
+  messagespercar[user]= obj;
+  console.log("Kafka, received message: ", nmessages+" "+JSON.stringify(obj)+" "+messagespercar[user]);
 });
 
 //"http://dcosappstudio-"+appdef.path+"workerlistener.marathon.l4lb.thisdcos.directory:0/data";
@@ -190,6 +194,54 @@ router.get('/setoffset', function(req, res, next) {
   let query = url_parts.query;
   messageoffset= query.offset;
   console.log("Offset set to: "+messageoffset);
+  res.end();
+});
+
+router.get('/sessions', function(req, res, next) {
+ 
+   let ret = "{\"session\":{\"begincomment\":null,\"dayssince01012012\":0,\"dummy\":null,\"endcomment\":null,\"ended\":null,\"groupid\":{\"id\":1,\"name\":\"Default\"},\"id\":0,\"start\":0},\"users\":[";
+ 
+  let data= new Array();
+  
+  let i= 0;
+  let first= true;
+  let now= new Date().getTime();
+    
+   
+  for(var key in messagespercar) {
+      console.log("session: "+key);
+    try {
+    let dt= messagespercar[key].event_timestamp;
+    dt= dt.replace('T', ' ');
+    dt = new Date(dt);
+    let ms= dt.getTime();
+  //  console.log("ms: "+ms);
+      
+  //   console.log(now+" "+ms);
+    if(now> ms + 1000*60) {
+      console.log("Deleting: "+key);
+ //   console.log(now+" "+ms+" "+dt);
+      delete messages.key;
+      continue;
+    }
+    }
+    catch(ex) {
+      console.log(ex);
+   } 
+    
+   let color= messagespercar[key].color;
+   let carid= messagespercar[key].carid; 
+    if (!first)
+      ret+= ", ";
+    else
+      first = false;
+    ret+= "{\"carid\":\""+carid+"\", \"color\":\""+color+"\"}";
+  }
+  ret= ret+ "]}";
+ 
+let r= JSON.parse(ret);
+  console.log("users.length: "+ r.users.length);
+  res.write(ret);
   res.end();
 });
 

@@ -1,22 +1,25 @@
 var express = require('express');
-var session = require('express-session');
 var path = require('path');
-//var favicon = require('serve-favicon');
+var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 
-
 var index = require('./routes/index');
 var menu = require('./routes/menu');
+//var httpProxy = require('http-proxy');
+//var proxy = httpProxy.createProxyServer({});
 
 var app = express();
+var session = require('express-session');
+//app.set('trust proxy', 1) // trust first proxy 
 app.use(session({
   secret: 'keyboard cat',
   resave: false,
-  saveUninitialized: true
-}));
-app.get("/n", function(req,res){
+  saveUninitialized: true,
+  cookie: { secure: true }
+}))
+app.get("/", function(req,res){
     var sess=req.session;
     console.log(sess);
     
@@ -28,15 +31,13 @@ app.get("/n", function(req,res){
     res.end('n: '+sess.n);   
 });
 
+// view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-var httpProxy = require('http-proxy');
-var proxy = httpProxy.createProxyServer({});
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
-
 let inkibana= false;
 app.use(function(req, res, next) {
   let uri= req.url;
@@ -72,14 +73,15 @@ app.use(function(req, res, next) {
 });
 
 
-app.use(bodyParser.text({type: '*/*'}));
 
+app.use(bodyParser.text({type: '*/*'}));
 app.use(bodyParser.raw());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
+
 app.use('/menu', menu);
 
 // catch 404 and forward to error handler
