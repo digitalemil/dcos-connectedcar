@@ -34,11 +34,11 @@ cp config.json config.tmp
 sed -ie "s@PUBLIC_SLAVE_ELB_HOSTNAME@$PUBLICELBHOST@g; s@PUBLICNODEIP@$PUBLICNODEIP@g; "  config.tmp
 
 cp setmodel.template setmodel.sh
-sed -ie "s@PUBLIC_SLAVE_ELB_HOSTNAME@$PUBLICELBHOST@g" setmodel.sh
+sed -ie "s@PUBLIC_SLAVE_ELB_HOSTNAME@$PUBLICNODEIP@g" setmodel.sh
 rm setmodel.she
 
 cp clearmodel.template clearmodel.sh
-sed -ie "s@PUBLIC_SLAVE_ELB_HOSTNAME@$PUBLICELBHOST@g" clearmodel.sh
+sed -ie "s@PUBLIC_SLAVE_ELB_HOSTNAME@$PUBLICNODEIP@g" clearmodel.sh
 rm clearmodel.she
 
 dcos marathon group add config.tmp
