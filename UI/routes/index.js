@@ -50,7 +50,9 @@ producer.on('ready', function () {
 });
 
 router.get('/', function(req, res, next) {
-  res.render('index', { title: "Connected Car Platform", name:"Connected Car Platform" });
+  let pn= process.env.PUBLICNODE+":10339";
+   let pnlg= process.env.PUBLICNODE+":10081";
+  res.render('index', { title: "Connected Car Platform", name:"Connected Car Platform", publicnode: pn, publicnodelg: pnlg});
 });
 
 

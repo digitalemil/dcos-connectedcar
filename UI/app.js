@@ -16,64 +16,47 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
-app.get("/n", function(req,res){
-    var sess=req.session;
-    console.log(sess);
-    
-    res.setHeader('Content-Type', 'text/html')
-   
-    if(!sess.n)
-      sess.n= 0;
-      sess.n++;
-    res.end('n: '+sess.n);   
+app.use(function(req, res, next) {
+  console.log("Hit: "+req.url);
+  next();
 });
-
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+/*
 var httpProxy = require('http-proxy');
 var proxy = httpProxy.createProxyServer({});
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
-
-let inkibana= false;
 app.use(function(req, res, next) {
   let uri= req.url;
-  console.log("In Kibana: "+inkibana+" "+uri);
+
+  if(!(uri=== "/" || uri.startsWith("/menu") || uri.startsWith("/health") || uri.startsWith("/car") || uri.startsWith("/model") || uri.startsWith("/images/") || uri.startsWith("/js/") || uri.startsWith("/cc"))) {
+    console.log("Proxy Kibana: "+req.url);
+ 
+    if(uri.includes("/service/elastic/kibana/")) {
+      req.url= uri.substring("/service/elastic/kibana/".length);
+      console.log("Effective Proxy Kibana: "+req.url);  
+    }
   
-  if(inkibana || uri.includes("elastic") || uri.includes("login") || uri.includes("kibana") || uri.includes("bundle") || uri.includes("api") || uri.includes("status")) {
-   
-   if(uri.includes("menu") || (uri.includes("logout") && !uri.includes("images/logout"))) {
+    proxy.web(req, res, { target: 'http://elastic:changeme@kibana.elastic.l4lb.thisdcos.directory:5601' });
+    return;
+  } 
+
+   if((uri.includes("logout") && !uri.includes("images/logout"))) {
      console.log("Kibana logout");
-     inkibana= false;
      res.writeHead(301,
-      {Location: '/menu'}
+      {Location: '/'}
     );
     res.end();
-     return;
+    return;
    }
-   if(uri.includes("login")) {
-     inkibana= true;
-   }
-  
-  console.log("Proxy Kibana: "+req.url+ " "+inkibana);
-  //1.8.8  proxy.web(req, res, { target: 'http://kibana.marathon.l4lb.thisdcos.directory:5601' });
-  if(uri.includes("/service/elastic/kibana/")) {
-    req.url= uri.substring("/service/elastic/kibana/".length);
-    console.log("Effective Proxy Kibana: "+req.url);  
-  }
-  
-  proxy.web(req, res, { target: 'http://elastic:changeme@kibana.elastic.l4lb.thisdcos.directory:5601' });
-}
- else {
-    next();
-  }
+   next();
 });
+*/
 
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+app.use(logger('dev'));
 
 app.use(bodyParser.text({type: '*/*'}));
-
 app.use(bodyParser.raw());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -81,6 +64,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
 app.use('/menu', menu);
+
+
+
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
