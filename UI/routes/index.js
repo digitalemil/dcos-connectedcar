@@ -51,8 +51,13 @@ producer.on('ready', function () {
 
 router.get('/', function(req, res, next) {
   let pn= process.env.PUBLICNODE+":10339";
-   let pnlg= process.env.PUBLICNODE+":10081";
-  res.render('index', { title: "Connected Car Platform", name:"Connected Car Platform", publicnode: pn, publicnodelg: pnlg});
+  let pnlg= process.env.PUBLICNODE+":10081";
+  let appsecret= process.env.APPSECRET;
+  if(appsecret==undefined) {
+    appsecret="Secret undefined. Please set APPSECRET env.";
+  }
+
+  res.render('index', { title: "Connected Car Platform", name:"Connected Car Platform", publicnode: pn, publicnodelg: pnlg, secret: appsecret });
 });
 
 

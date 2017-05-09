@@ -34,6 +34,11 @@ dcos security org groups add_user frontend frank
 dcos security org groups add_user edge emily
 dcos security org groups add_user edge edward
 
+dcos security secrets create --value="The secret secret" $FRONTEND/$APPPATH-secret
+
+curl -X PUT -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -H "Content-Type: application/json" -d '{"description":"Create permission to access secret"}' $(dcos config show core.dcos_url)/acs/api/v1/acls/dcos:secrets:default:%252F$FRONTENDWO%252F$APPPATH-secret
+curl -X PUT -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -H "Content-Type: application/json" -d '{"description":"Give read permission to group"}' $(dcos config show core.dcos_url)/acs/api/v1/acls/dcos:secrets:default:%252F$FRONTENDWO%252F$APPPATH-secret/groups/frontend/read
+
 
 curl -X PUT -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -H "Content-Type: application/json" -d '{"description":""}' $(dcos config show core.dcos_url)/acs/api/v1/acls/dcos:adminrouter:service:marathon
 curl -X PUT -k -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -H "Content-Type: application/json" -d '{"description":"Give permission to groups"}' $(dcos config show core.dcos_url)/acs/api/v1/acls/dcos:adminrouter:service:marathon/groups/frontend/full
